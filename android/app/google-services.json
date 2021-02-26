@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "918940625566",
+    "project_id": "time-shifter",
+    "storage_bucket": "time-shifter.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:918940625566:android:2d2037413c5d66fcb7e98f",
+        "android_client_info": {
+          "package_name": "com.kevinhern.time_shifter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "918940625566-9rj22lmh23edft95m82cn291064du8ob.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-3e_3b1CLciIH1MOVPxStwpjM2ZrMhSk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "918940625566-9rj22lmh23edft95m82cn291064du8ob.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

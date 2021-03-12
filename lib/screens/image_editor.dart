@@ -19,7 +19,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:time_shifter/backend/aihttp.dart';
 
-class ImageEditor extends StatelessWidget{
+class ImageEditor extends StatelessWidget {
   final int aiMode;
   ImageEditor(int aiMode, {Key key}) : this.aiMode = aiMode;
 
@@ -28,26 +28,26 @@ class ImageEditor extends StatelessWidget{
     return NavBarTemplate.buildAppBar(
       context,
       const [0xFF000051, 0xFF534bae, 0xFFFFFFFF],
-      (this.aiMode == 1)? 'Nochenizar' : "Colorizar",
+      (this.aiMode == 1) ? 'Nochenizar' : "Colorizar",
       new ImageEditorScreen(this.aiMode),
     );
   }
 }
 
-class ImageEditorScreen extends StatefulWidget{
+class ImageEditorScreen extends StatefulWidget {
   final int aiMode;
   ImageEditorScreen(int aiMode, {Key key}) : this.aiMode = aiMode;
 
   ImageEditorState createState() => ImageEditorState(this.aiMode);
 }
 
-class ImageEditorState extends State<ImageEditorScreen>{
+class ImageEditorState extends State<ImageEditorScreen> {
   final _formKey = GlobalKey<FormState>();
   final int aiMode;
   final String collection;
-  ImageEditorState(int aiMode, {Key key}) :
-        this.aiMode = aiMode,
-        this.collection = (aiMode == 1)? "nightirizer" : "colorized";
+  ImageEditorState(int aiMode, {Key key})
+      : this.aiMode = aiMode,
+        this.collection = (aiMode == 1) ? "nightirizer" : "colorized";
 
   bool showCapturedPhoto, showAlteredPhoto, showFetchPhoto;
   File imageFile, imageAltered;
@@ -57,7 +57,7 @@ class ImageEditorState extends State<ImageEditorScreen>{
   final List<int> colors = [0xFF1a237e, 0xFF534bae, 0xFF000051, 0xFFFFFFFF];
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     this._userNameController = new TextEditingController();
     this._userNameController.text = "";
@@ -109,12 +109,12 @@ class ImageEditorState extends State<ImageEditorScreen>{
               ),
             ],
           );
-        }
-    );
+        });
   }
 
-  Widget _buidTakePictureButton(){
-    return new Padding(padding: EdgeInsets.only(left: 5, right: 5, bottom: 10),
+  Widget _buidTakePictureButton() {
+    return new Padding(
+      padding: EdgeInsets.only(left: 5, right: 5, bottom: 10),
       child: RaisedButton(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30.0),
@@ -125,15 +125,21 @@ class ImageEditorState extends State<ImageEditorScreen>{
             // Capturing
             imageCache.clear();
             this.tempImageNumber++;
-            final PickedFile photo = await (new ImagePicker()).getImage(source: ImageSource.camera, imageQuality: 50, maxHeight: 256.0, maxWidth: 256.0,);
+            final PickedFile photo = await (new ImagePicker()).getImage(
+              source: ImageSource.camera,
+              imageQuality: 50,
+              maxHeight: 256.0,
+              maxWidth: 256.0,
+            );
 
             // Resizing
             final img = I.decodeImage(new File(photo.path).readAsBytesSync());
             final fimg = I.copyResize(img, width: 256, height: 256);
 
             // Getting final image
-            if(this.imageFile != null) this.imageFile.deleteSync();
-            this.imageFile = await AIHTTPRequest.getTemporaryFile('original' + this.tempImageNumber.toString());
+            if (this.imageFile != null) this.imageFile.deleteSync();
+            this.imageFile = await AIHTTPRequest.getTemporaryFile(
+                'original' + this.tempImageNumber.toString());
             this.imageFile.writeAsBytesSync(I.encodeJpg(fimg));
 
             // Scaling to [-1, 1]
@@ -149,111 +155,125 @@ class ImageEditorState extends State<ImageEditorScreen>{
         },
         color: Color(this.colors[2]),
         textColor: Color(this.colors[3]),
-        child: Text("Abrir\nCámara",
-          style: TextStyle(fontSize: 18), textAlign: TextAlign.center,),
+        child: Text(
+          "Abrir\nCámara",
+          style: TextStyle(fontSize: 18),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }
 
-  Widget _editorButton(){
-    return new Padding(padding: EdgeInsets.only(left: 30, right: 30, bottom: 20),
+  Widget _editorButton() {
+    return new Padding(
+      padding: EdgeInsets.only(left: 30, right: 30, bottom: 20),
       child: RaisedButton(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30.0),
         ),
         //padding: new EdgeInsets.only(left: 20, right: 20),
         onPressed: () async {
-          if(this.imageFile == null){
-            DialogTemplate.showMessage(context, "No has tomado ninguna foto", "Aviso");
-          }
-          else {
-            final ProgressDialogWrapper pd = ProgressDialogWrapper(context, 'Revisando disponibilidad del servidor...', 3);
+          if (this.imageFile == null) {
+            DialogTemplate.showMessage(
+                context, "No has tomado ninguna foto", "Aviso");
+          } else {
+            final ProgressDialogWrapper pd = ProgressDialogWrapper(
+                context, 'Revisando disponibilidad del servidor...', 3);
             String response;
             try {
               // Show Progress
               await pd.showProgressDialog();
 
               // HTTP request
-              response = await AIHTTPRequest.alterImageRequest(this.aiMode, this.imageFile, pd);
+              response = await AIHTTPRequest.alterImageRequest(
+                  this.aiMode, this.imageFile, pd);
               print(response);
               this.showAlteredPhoto = false;
               this.showFetchPhoto = false;
-            } catch(exception)  {
+            } catch (exception) {
               print(exception);
             }
 
             await pd.dismissProgressDialog();
 
             setState(() {});
-            if(response != null){
+            if (response != null) {
               this.alteredName = response;
               this.showFetchPhoto = true;
-              DialogTemplate.showMessage(context, "Imagen alterada exitosamente", "Aviso");
+              DialogTemplate.showMessage(
+                  context, "Imagen alterada exitosamente", "Aviso");
+            } else {
+              DialogTemplate.showMessage(
+                  context, "Ocurrió un error, intenta de nuevo", "Aviso");
             }
-            else {
-              DialogTemplate.showMessage(context, "Ocurrió un error, intenta de nuevo", "Aviso");
-            }
-
           }
         },
         color: Color(this.colors[2]),
         textColor: Color(this.colors[3]),
-        child: Text("Alterar",
-            style: TextStyle(fontSize: 18)),
+        child: Text("Alterar", style: TextStyle(fontSize: 18)),
       ),
     );
   }
 
-  Widget _buildFetchButton(){
-    return new Padding(padding: EdgeInsets.only(left: 30, right: 30, bottom: 20),
+  Widget _buildFetchButton() {
+    return new Padding(
+      padding: EdgeInsets.only(left: 30, right: 30, bottom: 20),
       child: RaisedButton(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30.0),
         ),
         //padding: new EdgeInsets.only(left: 20, right: 20),
         onPressed: () async {
-          final ProgressDialogWrapper pd = ProgressDialogWrapper(context, 'Revisando disponibilidad del servidor...', 3);
+          final ProgressDialogWrapper pd = ProgressDialogWrapper(
+              context, 'Revisando disponibilidad del servidor...', 3);
           try {
             // Show Progress
             await pd.showProgressDialog();
-            if(this.imageAltered != null) this.imageAltered.deleteSync();
-            this.imageAltered = await AIHTTPRequest.fileFromImageUrl(1, this.alteredName, pd, this.tempImageNumber);
+            if (this.imageAltered != null) this.imageAltered.deleteSync();
+            this.imageAltered = await AIHTTPRequest.fileFromImageUrl(
+                1, this.alteredName, pd, this.tempImageNumber);
           } catch (e) {
             print(e);
           }
           await pd.dismissProgressDialog();
-          if(this.imageAltered != null){
+          if (this.imageAltered != null) {
             this.showAlteredPhoto = true;
-            DialogTemplate.showMessage(context, "Imagen obtenida exitosamente", "Aviso");
-          }
-          else {
-            DialogTemplate.showMessage(context, "Ocurrió un error, intenta de nuevo", "Aviso");
+            DialogTemplate.showMessage(
+                context, "Imagen obtenida exitosamente", "Aviso");
+          } else {
+            DialogTemplate.showMessage(
+                context, "Ocurrió un error, intenta de nuevo", "Aviso");
           }
           setState(() {});
         },
         color: Color(this.colors[2]),
         textColor: Color(this.colors[3]),
-        child: Text("Obtener Imagen Alterada",
-          style: TextStyle(fontSize: 18), textAlign: TextAlign.center,),
+        child: Text(
+          "Obtener Imagen Alterada",
+          style: TextStyle(fontSize: 18),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }
 
-  Widget _buildUploadButton(){
-    return new Padding(padding: EdgeInsets.only(left: 5, right: 5, bottom: 10),
+  Widget _buildUploadButton() {
+    return new Padding(
+      padding: EdgeInsets.only(left: 5, right: 5, bottom: 10),
       child: RaisedButton(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30.0),
         ),
         //padding: new EdgeInsets.only(left: 20, right: 20),
         onPressed: () async {
-
           int code = 0;
 
-          final ProgressDialogWrapper pd = ProgressDialogWrapper(context, 'Procesando Imagen...', 3);
+          final ProgressDialogWrapper pd =
+              ProgressDialogWrapper(context, 'Procesando Imagen...', 3);
           await pd.showProgressDialog();
           try {
-            while(this._userNameController.text.isEmpty || this._userNameController.text.trim().isEmpty) {
+            while (this._userNameController.text.isEmpty ||
+                this._userNameController.text.trim().isEmpty) {
               this._userNameController.text = "";
               await this.askName();
             }
@@ -268,8 +288,7 @@ class ImageEditorState extends State<ImageEditorScreen>{
             } else if (Platform.isIOS) {
               var data = await deviceInfoPlugin.iosInfo;
               identifier = data.identifierForVendor;
-            }
-            else {
+            } else {
               throw PlatformException();
             }
 
@@ -279,17 +298,20 @@ class ImageEditorState extends State<ImageEditorScreen>{
             pd.updateProgressDialog("Subiendo Imagen: paso 1 de 2...", 2);
 
             FirebaseStorage storage = FirebaseStorage.instance;
-            Reference storef = storage.ref().child(identifier + "/"+ timestamp.toString() + ".jpg");
+            Reference storef = storage
+                .ref()
+                .child(identifier + "/" + timestamp.toString() + ".jpg");
             await storef.putFile(this.imageAltered);
 
             // Uploading to Firestore
             pd.updateProgressDialog("Subiendo Imagen: paso 2 de 2...", 3);
-            final collection = FirebaseFirestore.instance.collection(this.collection);
+            final collection =
+                FirebaseFirestore.instance.collection(this.collection);
             await collection.add({
               'imgname': timestamp.toString() + ".jpg",
               'devid': identifier,
               'timestamp': timestamp,
-              'name': (this.userName == null)? "Anónimo" : this.userName,
+              'name': (this.userName == null) ? "Anónimo" : this.userName,
             });
 
             code = 1;
@@ -297,33 +319,45 @@ class ImageEditorState extends State<ImageEditorScreen>{
             print(e);
           }
           await pd.dismissProgressDialog();
-          String message = (code == 1)? "Imagen fue compartida exitosamente" : "Ocurrió un error, intenta otra vez";
+          String message = (code == 1)
+              ? "Imagen fue compartida exitosamente"
+              : "Ocurrió un error, intenta otra vez";
           DialogTemplate.showMessage(context, message, "Aviso");
         },
         color: Color(this.colors[2]),
         textColor: Color(this.colors[3]),
-        child: Text("Compartir",
-          style: TextStyle(fontSize: 18), textAlign: TextAlign.center,),
+        child: Text(
+          "Compartir",
+          style: TextStyle(fontSize: 18),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }
 
-  Widget _showPhoto(){
-    if (this.aiMode == 1){
-      return (this.showCapturedPhoto)? Image.file(File(this.imageFile.path)) : Container();
-    }
-    else {
-      return ColorFiltered(
-        colorFilter: ColorFilter.mode(
-          Colors.grey,
-          BlendMode.saturation,
-        ),
-        child: (this.showCapturedPhoto)? Image.file(File(this.imageFile.path)) : Container(),
-      );
+  Widget _showPhoto(bool showGray) {
+    if (this.aiMode == 1) {
+      return (this.showCapturedPhoto)
+          ? Image.file(File(this.imageFile.path))
+          : Container();
+    } else {
+      return (showGray)
+          ? ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                Colors.grey,
+                BlendMode.saturation,
+              ),
+              child: (this.showCapturedPhoto)
+                  ? Image.file(File(this.imageFile.path))
+                  : Container(),
+            )
+          : (this.showCapturedPhoto)
+              ? Image.file(File(this.imageFile.path))
+              : Container();
     }
   }
 
-  Widget _buildImageEditor(){
+  Widget _buildImageEditor() {
     return new Form(
       child: new ListView(
         //physics: const NeverScrollableScrollPhysics(),
@@ -333,14 +367,38 @@ class ImageEditorState extends State<ImageEditorScreen>{
                 children: <Widget>[
                   new Padding(
                     padding: EdgeInsets.only(bottom: 10, top: 5),
-                    child: new Text("Tomar una Foto", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 28), textAlign: TextAlign.center,),
+                    child: new Text(
+                      "Tomar una Foto",
+                      style: new TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 28),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                   this._buidTakePictureButton(),
                   Visibility(
                     visible: this.showCapturedPhoto,
                     child: new Container(
                       padding: new EdgeInsets.all(5),
-                      child: this._showPhoto(),
+                      child: this._showPhoto(true),
+                    ),
+                  ),
+                  Visibility(
+                    visible: this.showCapturedPhoto && this.aiMode == 2,
+                    child: Container(
+                      padding: EdgeInsets.all(5),
+                      child: Text(
+                        "Foto Original",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 28),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  Visibility(
+                    visible: this.showCapturedPhoto && this.aiMode == 2,
+                    child: new Container(
+                      padding: new EdgeInsets.all(5),
+                      child: this._showPhoto(false),
                     ),
                   ),
                   Visibility(
@@ -351,18 +409,23 @@ class ImageEditorState extends State<ImageEditorScreen>{
                     visible: this.showFetchPhoto,
                     child: Container(
                       padding: const EdgeInsets.all(30),
-                      child: (this.showAlteredPhoto)? Image.file(File(this.imageAltered.path)) : this._buildFetchButton(),
+                      child: (this.showAlteredPhoto)
+                          ? Image.file(File(this.imageAltered.path))
+                          : this._buildFetchButton(),
                     ),
                   ),
                   Visibility(
                     visible: this.showAlteredPhoto,
-                    child: this._buildUploadButton() ,
+                    child: this._buildUploadButton(),
                   ),
                 ],
               ),
-              [20, 20, 20, 40], 15,
-              10, 10, 0.15, 30
-          ),
+              [20, 20, 20, 40],
+              15,
+              10,
+              10,
+              0.15,
+              30),
         ],
       ),
       key: this._formKey,
